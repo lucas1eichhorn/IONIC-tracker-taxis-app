@@ -1,3 +1,5 @@
+import { HomePage } from "./../home/home";
+import { UsuarioProvider } from "./../../providers/usuario/usuario";
 import { Component } from "@angular/core";
 import {
   NavController,
@@ -20,7 +22,8 @@ export class LoginPage {
     public navCtrl: NavController,
     public navParams: NavParams,
     public alertCtrl: AlertController,
-    public loadingCtrl: LoadingController
+    public loadingCtrl: LoadingController,
+    public _us: UsuarioProvider
   ) {}
 
   ionViewDidLoad() {
@@ -65,8 +68,30 @@ export class LoginPage {
       content: "Verificando"
     });
     loading.present();
-    setTimeout(() => {
+
+    //cuando trabajo con promesas usas then y catch, se debe esperar a que la promesa devuelva el result
+    this._us.verificaUsuario(clave).then(existe => {
+      //quitamos el loading cuando llega la respuesta
       loading.dismiss();
-    }, 3000);
+      if (existe) {
+        //desbloqueamos el slide si existe el usuario, pasamos a la siguiente pantalla, y lo volvemos a bloquar
+        this.slides.lockSwipes(false);
+        this.slides.freeMode = true;
+        this.slides.slideNext();
+        this.slides.lockSwipes(true); //bloquear
+        this.slides.freeMode = false;
+      } else {
+        this.alertCtrl
+          .create({
+            title: "Usuario incorrecto",
+            subTitle: "Consulta al administrador",
+            buttons: ["Aceptar"]
+          })
+          .present();
+      }
+    });
+  }
+  ingresar() {
+    this.navCtrl.setRoot(HomePage);
   }
 }
