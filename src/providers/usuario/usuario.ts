@@ -1,3 +1,4 @@
+import { Subscription } from 'rxjs';
 import { Platform } from "ionic-angular";
 import { Injectable } from "@angular/core";
 import { AngularFirestore } from "@angular/fire/firestore";
@@ -7,6 +8,7 @@ import { Storage } from "@ionic/storage";
 export class UsuarioProvider {
   clave: string;
   usuario: any = {};
+  private doc:Subscription;
   constructor(
     private afDB: AngularFirestore,
     private platform: Platform,
@@ -18,7 +20,7 @@ export class UsuarioProvider {
     clave = clave.toLowerCase();
     return new Promise((resolve, reject) => {
       //nos suscribimos al cambio de informacion para obtener los datos cuando cambien
-      this.afDB
+     this.doc=this.afDB
         .doc(`/usuarios/${clave}`)
         .valueChanges()
         .subscribe(data => {
@@ -69,5 +71,15 @@ export class UsuarioProvider {
         }
       }
     });
+  }
+  borrarUsuario() {
+    this.clave = null;
+    if(this.platform.is("cordova")){
+      this.storage.remove("clave");
+    }else{
+      localStorage.removeItem("clave");
+    }
+    //dejamos de escuchar los cambios en el documento del usuario
+    this.doc.unsubscribe();
   }
 }
